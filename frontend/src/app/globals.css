@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b1220;
+  --panel: #121a2b;
+  --panel-border: #223049;
+  --text: #e8ecf3;
+  --muted: #8793a8;
+  --green: #3fbf8f;
+  --amber: #e8a33d;
+  --red: #e5484d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono), monospace;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+::selection {
+  background: var(--green);
+  color: var(--bg);
+}
