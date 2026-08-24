@@ -9,10 +9,23 @@ if sys.stdout.encoding != 'utf-8':
 
 import os
 import time
+import json
 from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
+
+CACHE_FILE = "data/diagnosis_cache.json"
+try:
+    with open(CACHE_FILE, "r") as f:
+        _diagnosis_cache = json.load(f)
+except FileNotFoundError:
+    _diagnosis_cache = {}
+
+def _save_cache():
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+    with open(CACHE_FILE, "w") as f:
+        json.dump(_diagnosis_cache, f)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
@@ -68,10 +81,18 @@ Reply with only the label, nothing else."""
 
 def diagnose(record):
     """Returns root_cause string. Rules first, Gemini only if rules can't classify."""
+    cache_key = f"{record.get('failure_type')}|{record.get('failure_code')}|{record.get('is_subscription')}"
+    if cache_key in _diagnosis_cache:
+        record["root_cause"] = _diagnosis_cache[cache_key]
+        record["diagnosis_method"] = "cached"
+        return record
+
     root_cause = diagnose_rule_based(record)
     if root_cause is None:
         root_cause = diagnose_with_gemini(record)
         record["diagnosis_method"] = "gemini_fallback"
+        _diagnosis_cache[cache_key] = root_cause
+        _save_cache()
     else:
         record["diagnosis_method"] = "rule_based"
     record["root_cause"] = root_cause

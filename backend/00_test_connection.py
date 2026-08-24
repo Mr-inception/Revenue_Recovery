@@ -7,10 +7,20 @@ import io
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
+import os
+from dotenv import load_dotenv
 import razorpay
 
-KEY_ID = "rzp_test_TSK03hs97FXyMc"      # paste your key_id
-KEY_SECRET = "1dfDDAxi8N60vDvDCy0rD7WZ"  # paste your key_secret
+load_dotenv()
+
+KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
+
+if not KEY_ID or not KEY_SECRET:
+    raise RuntimeError(
+        "RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET environment variables are not set. "
+        "Check your .env file."
+    )
 
 client = razorpay.Client(auth=(KEY_ID, KEY_SECRET))
 

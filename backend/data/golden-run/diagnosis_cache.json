@@ -1,0 +1,1 @@
+{"card_declined|PROCESSOR_ERROR|True": "TRANSIENT_ERROR", "gateway_timeout|UNCATEGORIZED_DECLINE|False": "TRANSIENT_ERROR", "card_declined|PROCESSOR_ERROR|False": "CARD_ISSUE", "gateway_timeout|UNCATEGORIZED_DECLINE|True": "TRANSIENT_ERROR"}

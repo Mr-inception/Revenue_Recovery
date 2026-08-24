@@ -81,6 +81,12 @@ frontend/       → Next.js dashboard (ledger-style audit trail UI)
 
 ## Design decisions (and what broke)
 
+**Gemini free-tier daily quota.** The Gemini API free tier allows 20 requests per day, which breaks on a 65-record batch. To handle this gracefully, root-cause diagnoses for a given (failure_type, failure_code, is_subscription) combination are cached in `diagnosis_cache.json`. This avoids re-spending quota on repeat runs.
+
+**Pipeline retry loop.** In `06_pipeline.py`, the `process_case()` function uses a retry loop. Each case is retried (decide -> execute -> log) until it resolves, gets escalated, or hits the 3-retry stopping rule, all within a single batch run. This actually exercises the stopping-rule logic dynamically.
+
+**Strict CredentialError handling.** In `04_execute.py`, authentication failures (e.g., missing or invalid Razorpay keys) throw a `CredentialError`. These are never silently treated as a simulated success. They propagate and fail loudly, which is distinct from expected business-level failures like the test-mode 30-link cap.
+
 **Test-mode's 30-link cap, not a rate limit.** Razorpay's test mode allows
 only 30 Payment Links per business, total — not per minute. Early runs threw
 `"Too many requests"` on batch calls, which I first misdiagnosed as a
@@ -138,6 +144,7 @@ export GEMINI_API_KEY="..."
 Run the pipeline stages in order:
 
 ```bash
+cd backend
 python 01_generate_data.py   # generates data/transactions.json
 python 06_pipeline.py        # runs the full pipeline, prints metrics
 uvicorn 07_api:app --reload --port 8000   # serves the API
